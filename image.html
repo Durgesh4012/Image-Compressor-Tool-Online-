@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Image Compressor Tool</title>
+  <style>
+    /* General Styles */
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f9;
+      color: #333;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+      text-align: center;
+      color: #4CAF50;
+    }
+
+    p {
+      text-align: center;
+      color: #666;
+    }
+
+    /* Upload Button */
+    .upload-btn {
+      display: inline-block;
+      padding: 10px 20px;
+      background-color: #4CAF50;
+      color: white;
+      border-radius: 5px;
+      cursor: pointer;
+      text-align: center;
+    }
+
+    .upload-btn:hover {
+      background-color: #45a049;
+    }
+
+    #image-upload {
+      display: none;
+    }
+
+    /* Quality Slider */
+    .quality-section {
+      margin: 20px 0;
+      text-align: center;
+    }
+
+    #quality-slider {
+      width: 80%;
+    }
+
+    #quality-value {
+      margin-left: 10px;
+      font-weight: bold;
+    }
+
+    /* Preview Section */
+    .preview-section {
+      text-align: center;
+    }
+
+    .image-preview {
+      margin: 20px 0;
+      max-height: 300px;
+      overflow: hidden;
+    }
+
+    #preview-image {
+      max-width: 100%;
+      height: auto;
+      border: 2px solid #ddd;
+      border-radius: 5px;
+    }
+
+    #download-btn {
+      padding: 10px 20px;
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    #download-btn:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+
+    #download-btn:hover:not(:disabled) {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Image Compressor Tool</h1>
+    <p>Upload your image, adjust quality, and download the compressed version.</p>
+
+    <!-- File Upload -->
+    <div class="upload-section">
+      <label for="image-upload" class="upload-btn">Select Image</label>
+      <input type="file" id="image-upload" accept="image/*" />
+    </div>
+
+    <!-- Quality Slider -->
+    <div class="quality-section">
+      <label for="quality-slider">Adjust Quality:</label>
+      <input type="range" id="quality-slider" min="10" max="100" value="75" />
+      <span id="quality-value">75%</span>
+    </div>
+
+    <!-- Preview Section -->
+    <div class="preview-section">
+      <h2>Preview</h2>
+      <div class="image-preview">
+        <img id="preview-image" src="#" alt="Preview" />
+      </div>
+      <button id="download-btn" disabled>Download Compressed Image</button>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const imageUpload = document.getElementById("image-upload");
+      const qualitySlider = document.getElementById("quality-slider");
+      const qualityValue = document.getElementById("quality-value");
+      const previewImage = document.getElementById("preview-image");
+      const downloadBtn = document.getElementById("download-btn");
+
+      let originalImage = null;
+
+      // Update quality value on slider change
+      qualitySlider.addEventListener("input", () => {
+        qualityValue.textContent = `${qualitySlider.value}%`;
+        if (originalImage) {
+          compressAndPreviewImage(originalImage);
+        }
+      });
+
+      // Handle image upload
+      imageUpload.addEventListener("change", (event) => {
+        const file = event.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            originalImage = new Image();
+            originalImage.src = e.target.result;
+            originalImage.onload = () => {
+              compressAndPreviewImage(originalImage);
+            };
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+
+      // Compress and preview image
+      function compressAndPreviewImage(image) {
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+
+        // Set canvas dimensions
+        canvas.width = image.width;
+        canvas.height = image.height;
+
+        // Draw image on canvas
+        ctx.drawImage(image, 0, 0);
+
+        // Convert canvas to compressed image
+        canvas.toBlob(
+          (blob) => {
+            const url = URL.createObjectURL(blob);
+            previewImage.src = url;
+            downloadBtn.disabled = false;
+            downloadBtn.onclick = () => downloadImage(blob);
+          },
+          "image/jpeg",
+          qualitySlider.value / 100
+        );
+      }
+
+      // Download compressed image
+      function downloadImage(blob) {
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = "compressed-image.jpg";
+        link.click();
+      }
+    });
+  </script>
+</body>
+</html>
